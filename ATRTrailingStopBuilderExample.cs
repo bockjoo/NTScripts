@@ -27,6 +27,20 @@ namespace NinjaTrader.NinjaScript.Strategies
 {
 	public class ATRTrailingStopBuilderExample : Strategy
 	{
+		/* SmoothMARibbon */
+    	private EMA fastEMA;
+    	private EMA slowEMA;
+
+    	[NinjaScriptProperty]
+    	[Range(1, int.MaxValue)]
+    	[Display(Name = "Fast EMA Period", Order = 1, GroupName = "Parameters")]
+    	public int FastPeriod { get; set; }
+
+    	[NinjaScriptProperty]
+    	[Range(1, int.MaxValue)]
+    	[Display(Name = "Slow EMA Period", Order = 2, GroupName = "Parameters")]
+    	public int SlowPeriod { get; set; }
+		/* SmoothMARibbon */
 		private int ReverseOffset;
 		private double StopPrice;
 
@@ -61,9 +75,21 @@ namespace NinjaTrader.NinjaScript.Strategies
 				ATROffset					= 0;
 				ReverseOffset					= 0;
 				StopPrice					= 0;
+				/* SmoothMARibbon */
+	            FastPeriod = 10;
+    	        SlowPeriod = 50;
+	    	    //AddPlot(Color.Goldenrod, "fastEMA");
+    	    	//AddPlot(Color.LightSalmon, "slowEMA");	
+				AddPlot(Brushes.Blue, "fastEMA");
+				AddPlot(Brushes.Red, "slowEMA");
+				/* SmoothMARibbon */
 			}
 			else if (State == State.Configure)
 			{
+				/* SmoothMARibbon */
+	            fastEMA = EMA(FastPeriod);
+    	        slowEMA = EMA(SlowPeriod);
+				/* SmoothMARibbon */
 			}
 			else if (State == State.DataLoaded)
 			{				
@@ -82,15 +108,22 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 			if (CurrentBars[0] < 1)
 				return;
+			
+			/* SmoothMARibbon */
+	        if (CurrentBar < Math.Max(FastPeriod, SlowPeriod))
+    	        return;
+			/* SmoothMARibbon */
 
 			 // Set 1
 			if ((Position.MarketPosition == MarketPosition.Flat)
 				 && (ATRTrailing1.Lower[0] > 0)
 				 && (IsFirstTickOfBar == true))
 			{
+				if (CrossAbove(fastEMA, slowEMA, 1)) { 			/* SmoothMARibbon */
 				EnterLong(Convert.ToInt32(DefaultQuantity), @"longEntry");
 				MathSeries[0] = ATROffset;
 				ReverseOffset = Convert.ToInt32((MathSeries[0] * -1) );
+				} 			/* SmoothMARibbon */
 			}
 			
 			 // Set 2
